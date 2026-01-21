@@ -1,4 +1,5 @@
 
+
 --create table queries
 
 CREATE TABLE DEPARTMENT (
@@ -14,7 +15,7 @@ CREATE TABLE PROJECT (
 );
 
 CREATE TABLE EMPLOYEE (
-	EMP_ID VARCHAR(10) PRIMARY KEY,
+	EMP_ID VARCHAR(10) PRIMARY KEY,	
 	EMP_NAME VARCHAR(30) NOT NULL,
 	DEPT_ID INT NOT NULL,
 	PROJ_ID INT NOT NULL,
@@ -110,3 +111,6 @@ alter table employee drop constraint employee_proj_id_fkey;
 
 --drop table
 drop table project;
+
+
+select * from employee order by emp_id;
