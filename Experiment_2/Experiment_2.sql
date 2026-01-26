@@ -1,4 +1,3 @@
-
 -- create table command
 CREATE TABLE CUSTOMER_ORDERS (
 	ORDER_ID INT PRIMARY KEY,
@@ -86,3 +85,23 @@ GROUP BY
 	PRODUCT
 HAVING
 	SUM(QUANTITY) >= 5;
+
+
+-- select query to understand filtering vs aggregation conditions
+-- incorrect query
+SELECT 
+    product,
+    SUM(quantity * price) AS total_sales
+FROM customer_orders
+WHERE quantity >= 2
+GROUP BY product;
+
+
+-- correct query
+SELECT 
+    product,
+    SUM(quantity * price) AS total_sales
+FROM customer_orders
+GROUP BY product
+HAVING SUM(quantity * price) > 50000;
+
