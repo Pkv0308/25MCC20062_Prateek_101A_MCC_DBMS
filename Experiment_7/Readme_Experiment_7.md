@@ -1,4 +1,4 @@
-# 📘 Experiment 6: Views in SQL Databases
+# 📘 Experiment 7:  Joins in SQL
 
 ## 🧑‍🎓 Student Information
 
