@@ -1,0 +1,127 @@
+
+-- CREATE TABLE employees (
+--     emp_id INT  PRIMARY KEY,
+--     emp_name VARCHAR(100) NOT NULL,
+--     salary NUMERIC(10,2) NOT NULL,
+--     department VARCHAR(50)
+-- );
+-- -- 2. Insert sample data
+-- INSERT INTO employees VALUES
+-- (1,'Alice', 50000, 'HR'),
+-- (2,'Bob', 60000, 'IT'),
+-- (3,'Charlie', 55000, 'Finance');
+
+
+-- insertion procedure
+CREATE OR REPLACE PROCEDURE INSERT_EMPLOYEE_PROC (
+    IN P_EMP_ID INT,
+    IN P_EMP_NAME VARCHAR(100),
+    IN P_SALARY NUMERIC(10,2),
+    IN P_DEPARTMENT VARCHAR(50),
+    OUT STATUS VARCHAR(50)
+) AS $$
+BEGIN
+    INSERT INTO EMPLOYEES (EMP_ID, EMP_NAME, SALARY, DEPARTMENT)
+    VALUES (P_EMP_ID, P_EMP_NAME, P_SALARY, P_DEPARTMENT);
+    STATUS := 'Success';
+EXCEPTION 
+    WHEN unique_violation THEN
+        STATUS := 'Error: Employee ID already exists';
+    WHEN not_null_violation THEN
+        STATUS := 'Error: Missing required fields';
+    WHEN OTHERS THEN
+        STATUS := 'Error: ' || SQLERRM;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CALL INSERT_EMPLOYEE_PROC(4, 'David', 65000, 'Marketing',NULL);
+
+
+
+-- salary update procedure
+CREATE OR REPLACE PROCEDURE UPDATE_SALARY_PROC (
+	IN P_EMP_ID INT,
+	INOUT P_SALARY NUMERIC(20, 3),
+	OUT STATUS VARCHAR(20)
+) AS $$
+DECLARE 
+    CURR_SAL NUMERIC(20, 3);
+BEGIN
+    SELECT
+        SALARY + P_SALARY INTO CURR_SAL
+    FROM
+        EMPLOYEES
+    WHERE
+        EMP_ID = P_EMP_ID;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Employee Not Found';
+    END IF;
+    UPDATE EMPLOYEES
+    SET
+        SALARY = CURR_SAL
+    WHERE
+        EMP_ID = P_EMP_ID;
+    STATUS := 'Success';
+    P_SALARY := CURR_SAL;
+    EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%Employee Not Found%' THEN STATUS := 'Employee Not Found';
+    END IF;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CALL UPDATE_SALARY_PROC(4, 5000.00,null);
+
+
+-- deletion procedure
+CREATE OR REPLACE PROCEDURE DELETE_EMPLOYEE_PROC (
+    IN P_EMP_ID INT,
+    OUT STATUS VARCHAR(50)
+) AS $$
+DECLARE 
+    V_DELETED_ROWS INT;
+BEGIN
+    DELETE FROM EMPLOYEES
+    WHERE EMP_ID = P_EMP_ID;
+    GET DIAGNOSTICS V_DELETED_ROWS = ROW_COUNT;
+    IF V_DELETED_ROWS = 0 THEN 
+        STATUS := 'Employee Not Found';
+    ELSE
+        STATUS := 'Success';
+    END IF;
+EXCEPTION 
+    WHEN OTHERS THEN 
+        STATUS := 'Error: ' || SQLERRM;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CALL DELETE_EMPLOYEE_PROC(4,null);
+
+-- row retrieval prodecure
+CREATE OR REPLACE PROCEDURE GET_EMPLOYEE_PROC (
+    IN P_EMP_ID INT,
+    OUT P_EMP_NAME VARCHAR(100),
+    OUT P_SALARY NUMERIC(10,2),
+    OUT P_DEPARTMENT VARCHAR(50),
+    OUT STATUS VARCHAR(50)
+) AS $$
+BEGIN
+    SELECT EMP_NAME, SALARY, DEPARTMENT 
+    INTO P_EMP_NAME, P_SALARY, P_DEPARTMENT
+    FROM EMPLOYEES
+    WHERE EMP_ID = P_EMP_ID;
+    IF NOT FOUND THEN
+        STATUS := 'Employee Not Found';
+        P_EMP_NAME := NULL;
+        P_SALARY := NULL;
+        P_DEPARTMENT := NULL;
+    ELSE
+        STATUS := 'Success';
+    END IF;
+EXCEPTION 
+    WHEN OTHERS THEN 
+        STATUS := 'Error: ' || SQLERRM;
+        P_EMP_NAME := NULL;
+        P_SALARY := NULL;
+        P_DEPARTMENT := NULL;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CALL GET_EMPLOYEE_PROC(4,null,null,null,null);
